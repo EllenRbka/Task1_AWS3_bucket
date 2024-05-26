@@ -6,30 +6,24 @@ on:
       - main
 
 jobs:
-  terraform-init:
+  terraform:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Terraform Init
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: '0.15.3'
+      - name: Install LocalStack
+        run: pip install localstack
 
-    - name: Terraform Init (localstack)
-      run: |
-        terraform init \
-          -backend-config="region=us-east-1" \
-          -backend-config="endpoint=http://localhost:4566" \
-          -backend-config=" SpencerMC/localstack:latest" \
-          -upgrade
+      - name: Install Terraform
+        run: curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+        run: sudo apt-get update && sudo apt-get install terraform
 
-    - name: Terraform Validate
-      run: terraform validate
+      - name: Initialize Terraform
+        run: terraform init
 
-    - name: Terraform Plan
-      run: terraform plan -out=tfplan
+      - name: Apply Terraform
+        run: terraform apply -auto-approve
 
-    - name: Terraform Apply
-      run: terraform apply tfplan
+      - name: Output bucket name
+        run: terraform output bucket_name
