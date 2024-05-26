@@ -1,0 +1,35 @@
+name: Terraform
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform-init:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Terraform Init
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: '0.15.3'
+
+    - name: Terraform Init (localstack)
+      run: |
+        terraform init \
+          -backend-config="region=us-east-1" \
+          -backend-config="endpoint=http://localhost:4566" \
+          -backend-config=" SpencerMC/localstack:latest" \
+          -upgrade
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan
+
+    - name: Terraform Apply
+      run: terraform apply tfplan
